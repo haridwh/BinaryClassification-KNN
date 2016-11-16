@@ -9,7 +9,6 @@ def loadDataset(filename, split, trainingSet=[], testSet=[]):
         next(lines,None)
         dataset = list(lines)
         for i in range(len(dataset)):
-            j=1
             for j in range(12):
                 dataset[i][j]= float(dataset[i][j])
             if random.random() < split:
@@ -18,6 +17,28 @@ def loadDataset(filename, split, trainingSet=[], testSet=[]):
             else:
                 del dataset[i][0]
                 testSet.append(dataset[i])
+
+def loadDataTrain(filename, trainingSet=[]):
+    with open(filename,'rb') as csvfile:
+        lines = csv.reader(csvfile)
+        next(lines,None)
+        dataset = list(lines)
+        for i in range(len(dataset)):
+            for j in range(12):
+                dataset[i][j]=float(dataset[i][j])
+            del dataset[i][0]
+            trainingSet.append(dataset[i])
+
+def loadDataTest(filename, testSet=[]):
+    with open(filename,'rb') as csvfile:
+        lines = csv.reader(csvfile)
+        next(lines,None)
+        dataset = list(lines)
+        for i in range(len(dataset)):
+            for j in range(11):
+                dataset[i][j]=float(dataset[i][j])
+            del dataset[i][0]
+            testSet.append(dataset[i])
 
 def euclideanDistance(instance1, instance2, length):
     distance=0
@@ -55,22 +76,45 @@ def getAccuracy(testSet, predictions):
             correct += 1
     return (correct/float(len(testSet))) * 100.0
 
-def main():
+def mainTrain():
     trainingSet = []
     testSet = []
     split = 0.80
+    # loadDataTrain('Data/Train.csv',trainingSet)
+    # loadDataTest('Data/Test.csv',testSet)
     loadDataset('Data/Train.csv',split,trainingSet,testSet)
     print 'Train Set: '+repr(len(trainingSet))
     print 'Test Set: '+repr(len(testSet))
 
     predictions=[]
-    k = 31
+    k = 269
     for i in range(len(testSet)):
         neighbors = getNeighbor(trainingSet,testSet[i],k)
         result = getResponse(neighbors)
         predictions.append(result)
+        # print '> predicted=' + repr(result)
         print '> predicted=' + repr(result) + ', actual=' + repr(testSet[i][-1])
     accuracy = getAccuracy(testSet, predictions)
     print('Accuracy: '+ repr(accuracy)+'%')
 
-main()
+def mainTest():
+    trainingSet = []
+    testSet = []
+    loadDataTrain('Data/Train.csv',trainingSet)
+    loadDataTest('MiniTest.csv',testSet)
+    # loadDataset('Data/Train.csv',split,trainingSet,testSet)
+    print 'Train Set: '+repr(len(trainingSet))
+    print 'Test Set: '+repr(len(testSet))
+
+    predictions=[]
+    k = 5
+    for i in range(len(testSet)):
+        neighbors = getNeighbor(trainingSet,testSet[i],k)
+        result = getResponse(neighbors)
+        predictions.append(result)
+        # print '> predicted=' + repr(result)
+        print '> result=' + repr(result) #s + ', actual=' + repr(testSet[i][-1])
+    # accuracy = getAccuracy(testSet, predictions)
+    # print('Accuracy: '+ repr(accuracy)+'%')
+
+mainTest()
