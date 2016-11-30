@@ -2,6 +2,7 @@ import csv
 import random
 import math
 import operator
+import time
 
 def loadDataset(filename, split, trainingSet=[], testSet=[]):
     with open(filename,'rb') as csvfile:
@@ -39,6 +40,13 @@ def loadDataTest(filename, testSet=[]):
                 dataset[i][j]=float(dataset[i][j])
             del dataset[i][0]
             testSet.append(dataset[i])
+
+def saveDataTest(recordType, testSet=[]):
+    filename = time.strftime("%y%m%d-%H%M%S");
+    with open('Record'+recordType+'/'+filename,'wb') as recordFile:
+        record = csv.writer(recordFile, delimiter='[',
+                             quoting=csv.QUOTE_MINIMAL)
+        record.writerows(testSet)
 
 def euclideanDistance(instance1, instance2, length):
     distance=0
@@ -79,42 +87,43 @@ def getAccuracy(testSet, predictions):
 def mainTrain():
     trainingSet = []
     testSet = []
+    recordSet = []
     split = 0.80
-    # loadDataTrain('Data/Train.csv',trainingSet)
-    # loadDataTest('Data/Test.csv',testSet)
     loadDataset('Data/Train.csv',split,trainingSet,testSet)
     print 'Train Set: '+repr(len(trainingSet))
     print 'Test Set: '+repr(len(testSet))
-
     predictions=[]
+    # k = 5
     k = 269
     for i in range(len(testSet)):
         neighbors = getNeighbor(trainingSet,testSet[i],k)
         result = getResponse(neighbors)
         predictions.append(result)
-        # print '> predicted=' + repr(result)
-        print '> predicted=' + repr(result) + ', actual=' + repr(testSet[i][-1])
+        print '> '+repr(i+1)+'. predicted=' + repr(result) + ', actual=' + repr(testSet[i][-1])
+        recordSet.append(['>'+repr(i+1)+' predicted=' + repr(result) + ', actual=' + repr(testSet[i][-1])])
     accuracy = getAccuracy(testSet, predictions)
     print('Accuracy: '+ repr(accuracy)+'%')
+    recordSet.append(['Accuracy: '+ repr(accuracy)+'%'])
+    saveDataTest('Train',recordSet)
 
 def mainTest():
     trainingSet = []
     testSet = []
+    recordSet = []
     loadDataTrain('Data/Train.csv',trainingSet)
-    loadDataTest('MiniTest.csv',testSet)
-    # loadDataset('Data/Train.csv',split,trainingSet,testSet)
+    loadDataTest('Data/Test.csv',testSet)
     print 'Train Set: '+repr(len(trainingSet))
     print 'Test Set: '+repr(len(testSet))
-
     predictions=[]
     k = 5
+    recordSet.append(['ID,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,y'])
     for i in range(len(testSet)):
         neighbors = getNeighbor(trainingSet,testSet[i],k)
-        result = getResponse(neighbors)
-        predictions.append(result)
-        # print '> predicted=' + repr(result)
-        print '> result=' + repr(result) #s + ', actual=' + repr(testSet[i][-1])
-    # accuracy = getAccuracy(testSet, predictions)
-    # print('Accuracy: '+ repr(accuracy)+'%')
+        result = (getResponse(neighbors))
+        print repr(i+1)+',' + ','.join(map(str,testSet[i])) + ',' + repr(result)
+        # print '> Data-'+repr(i+1)+'=' + repr(testSet[i]) + ', result=' + repr(result)
+        recordSet.append([repr(i+1)+',' + ','.join(map(str,testSet[i])) + ',' + repr(result)])
+    saveDataTest('Test',recordSet)
 
+# mainTest()
 mainTest()
